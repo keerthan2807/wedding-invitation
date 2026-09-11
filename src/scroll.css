@@ -1,0 +1,1015 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Wedding Scroll Journey — Doodle Map Style
+   Dark Maroon / Gold / Cinematic
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Entry animation — fade dissolve so dark bg emerges seamlessly ── */
+@keyframes spReveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Root scroll container ──────────────────────────────────── */
+.sp-root {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Exact same deep-maroon as the last film scene — zero seam */
+  background: #431019;
+  font-family: 'Cormorant Garamond', serif;
+  color: #fdf5e6;
+  animation: spReveal 0.9s cubic-bezier(0.22,1,0.36,1) both;
+  scroll-behavior: smooth;
+}
+
+/* ── Fixed rotating mandala artwork — the one continuous canvas ── */
+.sp-bg-artwork {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Subtle radial to add a tiny centre-bloom warmth without color shift */
+  background: radial-gradient(ellipse 55% 40% at 50% 50%, rgba(201,154,69,.04) 0%, transparent 70%);
+}
+.sp-bg-mandala {
+  width: min(130vw, 130vh);
+  height: min(130vw, 130vh);
+  opacity: 0.55;
+  animation: bgMandalaRotate 90s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes bgMandalaRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Ambient petals ──────────────────────────────────────────── */
+.sp-petals {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+}
+.sp-petal {
+  position: absolute;
+  top: -40px;
+  width: clamp(6px,1.2vw,10px);
+  aspect-ratio: 1 / 1.6;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: rgba(201,154,69,.22);
+  opacity: 0;
+  animation: petalFall linear infinite;
+}
+@keyframes petalFall {
+  0%   { transform: translateY(0)      rotate(0deg);   opacity: .0; }
+  10%  {                                               opacity: .5; }
+  90%  {                                               opacity: .3; }
+  100% { transform: translateY(110vh)  rotate(360deg); opacity: .0; }
+}
+
+/* ── Staggered reveal system ─────────────────────────────────── */
+[data-step] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1),
+              transform 0.7s cubic-bezier(0.22,1,0.36,1);
+}
+[data-step].sp-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Progress rail (right edge) ─────────────────────────────── */
+.sp-progress-rail {
+  position: fixed;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 70px;
+  background: rgba(201,154,69,.15);
+  border-radius: 999px;
+  z-index: 20; pointer-events: none;
+  overflow: visible;
+}
+.sp-progress-fill {
+  width: 100%;
+  background: linear-gradient(to bottom, #e7c878, #c99a45);
+  border-radius: 999px;
+  transition: height .12s linear;
+  min-height: 3px;
+}
+.sp-progress-gem {
+  position: absolute;
+  left: 50%; transform: translate(-50%, -50%);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #e7c878;
+  box-shadow: 0 0 6px 2px rgba(231,200,120,.35);
+  transition: top .12s linear;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO — 100dvh, true centre
+   ═══════════════════════════════════════════════════════════════ */
+.sp-hero {
+  position: relative;
+  z-index: 2;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(32px,7vh,60px) 24px clamp(24px,5vh,44px);
+  overflow: hidden;
+}
+.sp-hero-bloom {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; z-index: 0; opacity: .06;
+}
+.sp-hero-bloom-svg { width: min(90vw, 500px); }
+.sp-floral-bloom { width: 100%; height: 100%; }
+.sp-bless-bloom.sp-floral-bloom { width: clamp(70px,18vw,110px); height: auto; }
+
+.sp-hero-inner {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.sp-hero-img {
+  width: min(72vw, 300px);
+  max-height: 40vh;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 14px 22px rgba(0,0,0,.45));
+  margin-bottom: 4px;
+}
+.sp-hero-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.5rem, 1.4vw, 0.62rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(231,200,120,.6);
+  margin: 0;
+}
+.sp-hero-names {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(0.95rem, 3.5vw, 1.8rem);
+  font-weight: 400;
+  line-height: 1.5;
+  color: #fdf5e6;
+  margin: 0;
+}
+.sp-hero-amp {
+  display: block;
+  color: #c99a45;
+  font-size: 1.1em;
+  line-height: 1.2;
+}
+.sp-hero-date {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.82rem, 2.2vw, 1rem);
+  color: rgba(231,200,120,.65);
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+.sp-hero-rule {
+  display: flex; align-items: center; gap: 10px;
+  width: clamp(120px,40vw,200px);
+  margin: 6px 0;
+}
+.sp-hero-rule span {
+  flex: 1; height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,154,69,.35), transparent);
+}
+.sp-hero-rule i { color: rgba(201,154,69,.6); font-style: normal; font-size: 0.55rem; }
+
+.sp-hero-actions {
+  display: flex; gap: 14px; justify-content: center;
+  margin-top: 10px;
+}
+.sp-icon-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(201,154,69,.12);
+  border: 1px solid rgba(201,154,69,.28);
+  color: #e7c878;
+  font-size: 1rem;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.sp-icon-btn:hover { background: rgba(201,154,69,.28); transform: scale(1.1); }
+
+/* Scroll nudge — larger and more visible */
+.sp-scroll-nudge {
+  position: absolute;
+  bottom: clamp(20px,5vh,40px);
+  left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  animation: spNudgeBob 2s ease-in-out infinite;
+  z-index: 1;
+}
+.sp-nudge-path { width: 44px; }
+.sp-nudge-text {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.58rem, 1.6vw, 0.7rem);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(201,154,69,.75);
+  text-shadow: 0 0 12px rgba(201,154,69,.35);
+}
+@keyframes spNudgeBob {
+  0%, 100% { transform: translateX(-50%) translateY(0);   opacity: .8; }
+  50%       { transform: translateX(-50%) translateY(9px); opacity: 1;  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   JOURNEY — the winding doodle path
+   ═══════════════════════════════════════════════════════════════ */
+.sp-journey {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: clamp(30px,6vh,60px) 16px clamp(50px,10vh,90px);
+}
+
+/* Full-height SVG positioned behind stops */
+.sp-path-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+/* Single reveal path — dotted golden, progressive draw.
+   The "dotted" pattern is encoded INTO the dasharray that JS sets:
+   JS sets strokeDasharray to a repeating "dot gap" pattern string,
+   and strokeDashoffset draws only the portion the user has reached.
+   We pre-set a visible dot pattern here; JS will override dasharray length. */
+.sp-doodle-path {
+  fill: none;
+  stroke: #c99a45;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Dot pattern: 2px dot, 10px gap — delicate hand-drawn feel.
+     JS overrides dasharray with the full-length reveal version. */
+  stroke-dasharray: 2 10;
+  stroke-dashoffset: 0;
+  opacity: 0.82;
+}
+
+/* ── Decorative flourish at path origin ─────────────────────── */
+.sp-path-origin {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -30px);
+  z-index: 3;
+  pointer-events: none;
+  animation: originGlow 3s ease-in-out infinite;
+}
+.sp-origin-svg {
+  width: clamp(44px, 10vw, 64px);
+  height: auto;
+  display: block;
+}
+@keyframes originGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(231,200,120,.5));  opacity: .85; }
+  50%       { filter: drop-shadow(0 0 10px rgba(231,200,120,.8)); opacity: 1;   }
+}
+
+/* ── Travelling golden dot ─────────────────────────────────────
+   .sp-dot-glow  — large halo, positioned by JS transform
+   .sp-dot-tip   — bright core, positioned by JS transform
+   The pulse animation lives on ::after so the JS transform
+   (translate) is never overwritten by a CSS animation. */
+
+/* Dot tip — z-index 2 so it stays behind info cards (z-index 3) */
+.sp-dot-tip {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 2;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8e1 20%, #e7c878 60%, #c99a45 100%);
+  box-shadow: 0 0 6px 2px rgba(231,200,120,.7), 0 0 14px 4px rgba(201,154,69,.35);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  /* fade in/out only — no transform animation on this element */
+  transition: opacity 0.4s ease;
+}
+
+/* Outer glow wrapper — JS positions via transform translate
+   z-index 2 ensures it stays BEHIND info cards (z-index 3) */
+.sp-dot-glow {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 2;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.4s ease;
+}
+/* Pulse ring lives on ::after — never conflicts with JS transform */
+.sp-dot-glow::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(231,200,120,.22) 0%, transparent 65%);
+  animation: dotPulse 1.6s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1);   opacity: .8; }
+  50%       { transform: scale(1.7); opacity: .2; }
+}
+
+/* ── Sparkle burst (DOM-injected on stop arrival) ─────────── */
+.sp-sparkle-burst {
+  position: fixed;
+  z-index: 9998;
+  pointer-events: none;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #e7c878;
+  transform: translate(-50%, -50%);
+  animation: sparkleFly forwards;
+  box-shadow: 0 0 4px 1px rgba(231,200,120,.8);
+}
+@keyframes sparkleFly {
+  0%   { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
+  60%  { opacity: .8; }
+  100% { transform: translate(calc(-50% + var(--tx,0px)), calc(-50% + var(--ty,-30px))) scale(0.1); opacity: 0; }
+}
+
+/* ── Spacers between stops ──────────────────────────────────── */
+.sp-seg--spacer     { height: clamp(60px,12vh,100px); }
+.sp-seg--spacer-lg  { height: clamp(80px,15vh,130px); }
+.sp-seg--spacer-xl  { height: clamp(90px,17vh,150px); }
+.sp-seg--spacer-end { height: clamp(80px,14vh,120px); }
+/* Generous gap between destinations — makes them feel discovered */
+.sp-seg--journey-gap { height: clamp(160px,28vh,260px); }
+
+/* ── Node (dot on the path) ─────────────────────────────────── */
+.sp-node {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  z-index: 4;
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-node-dot {
+  position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #e7c878;
+  z-index: 2;
+}
+.sp-node-ring {
+  position: absolute;
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid rgba(201,154,69,.45);
+  animation: nodeRingPulse 2.4s ease-in-out infinite;
+}
+.sp-node-ring--2 {
+  width: 26px; height: 26px;
+  border-color: rgba(201,154,69,.22);
+  animation-delay: 0.4s;
+}
+.sp-node-ring--3 {
+  width: 38px; height: 38px;
+  border-color: rgba(201,154,69,.12);
+  animation-delay: 0.8s;
+}
+.sp-node--sacred .sp-node-dot { background: #c99a45; width: 10px; height: 10px; }
+.sp-node--final  .sp-node-dot { background: #e7c878; width: 12px; height: 12px;
+  box-shadow: 0 0 8px 3px rgba(231,200,120,.4); }
+@keyframes nodeRingPulse {
+  0%, 100% { transform: scale(1);    opacity: .7; }
+  50%       { transform: scale(1.18); opacity: .35; }
+}
+
+/* ── Generic segment (a stop row) ───────────────────────────── */
+.sp-seg {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+/* ── Info panel — rich gold-toned card ──────────────────────── */
+.sp-info {
+  /* Lighter warm maroon — enough contrast to stand out on deep-maroon bg */
+  background:
+    linear-gradient(145deg,
+      rgba(108, 44, 24, 0.95) 0%,
+      rgba( 82, 26, 16, 0.97) 55%,
+      rgba( 96, 34, 18, 0.93) 100%);
+  /* Gold border: top/left brighter for lit-from-above premium look */
+  border-top:    1px solid rgba(231,200,120,.65);
+  border-left:   1px solid rgba(201,154,69,.5);
+  border-right:  1px solid rgba(160,110,35,.35);
+  border-bottom: 1px solid rgba(130, 90,25,.3);
+  border-radius: 14px;
+  padding: clamp(16px,3.2vw,24px) clamp(18px,3.8vw,28px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  max-width: min(88vw, 310px);
+  display: flex; flex-direction: column; gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(231,200,120,.18),
+    inset 0 -1px 0 rgba(0,0,0,.3),
+    0 8px 32px rgba(0,0,0,.45),
+    0 2px 10px rgba(201,154,69,.12);
+  /* Cinematic focus/unfocus transitions */
+  transition:
+    opacity 0.65s cubic-bezier(0.4,0,0.2,1),
+    filter  0.65s cubic-bezier(0.4,0,0.2,1),
+    transform 0.65s cubic-bezier(0.4,0,0.2,1),
+    box-shadow 0.65s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Gallery card needs more width to hold the polaroid scatter */
+.sp-info--gallery {
+  max-width: min(94vw, 560px);
+}
+/* Tighten gallery title margin when inside the card */
+.sp-info--gallery .sp-gallery-title { margin: 2px 0 2px; }
+.sp-info--gallery .sp-gallery-sub   { margin: 0 0 14px; }
+.sp-info--left  { margin-right: auto; margin-left:  clamp(6px,2vw,20px); }
+.sp-info--right { margin-left:  auto; margin-right: clamp(6px,2vw,20px); }
+.sp-info--center {
+  max-width: min(90vw, 460px);
+  margin: 0 auto;
+  text-align: center;
+  align-items: center;
+}
+
+/* ── Cinematic focus states ──────────────────────────────────── */
+/* Focused card — sharp, bright, slightly lifted */
+.sp-info--focused {
+  opacity: 1;
+  filter: none;
+  transform: translateY(-2px) scale(1.015);
+  box-shadow:
+    inset 0 1px 0 rgba(231,200,120,.18),
+    inset 0 -1px 0 rgba(0,0,0,.4),
+    0 12px 40px rgba(0,0,0,.55),
+    0 0 20px rgba(201,154,69,.12),
+    0 2px 8px rgba(201,154,69,.1);
+  border-top-color: rgba(231,200,120,.75);
+  border-left-color: rgba(201,154,69,.55);
+}
+/* Unfocused card — softly blurred, pulled back */
+.sp-info--unfocused {
+  opacity: 0.42;
+  filter: blur(1.5px) brightness(0.75);
+  transform: translateY(0) scale(0.985);
+}
+
+/* ── Segment direction helpers ── */
+.sp-seg--countdown,
+.sp-seg--groom-mehandi {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+.sp-seg--bride-mehandi,
+.sp-seg--reception {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+.sp-seg--wedding,
+.sp-seg--gallery,
+.sp-seg--blessings,
+.sp-seg--center {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── Eyebrow / sub labels inside info ── */
+.sp-info-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.48rem, 1.3vw, 0.58rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(231,200,120,.55);
+  margin: 0;
+}
+
+/* ── Destination title ── */
+.sp-dest-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(0.95rem, 3vw, 1.4rem);
+  font-weight: 400;
+  color: #e7c878;
+  margin: 0;
+  line-height: 1.3;
+}
+.sp-dest-title--lg {
+  font-size: clamp(1.2rem, 4vw, 1.9rem);
+}
+
+.sp-dest-ornament {
+  font-size: 0.65rem;
+  color: rgba(201,154,69,.5);
+  letter-spacing: 0.1em;
+}
+
+.sp-dest-detail {
+  font-size: clamp(0.8rem, 2.1vw, 0.92rem);
+  color: rgba(253,245,230,.82);
+  margin: 0;
+  line-height: 1.5;
+  /* Prevent word-by-word breaks — keep location text on one line where possible */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.sp-dest-detail--center {
+  text-align: center;
+  white-space: normal; /* centred details can wrap normally */
+}
+.sp-detail-label {
+  display: inline;   /* inline so label + value sit on one line */
+  font-family: 'Inter', sans-serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(201,154,69,.65);
+  margin-right: 5px;
+}
+
+/* ── Venue block (icon + name + addr) ── */
+.sp-venue-block {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  background: rgba(201,154,69,.06);
+  border: 1px solid rgba(201,154,69,.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+}
+.sp-info--center .sp-venue-block { text-align: left; display: inline-flex; }
+.sp-venue-name {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.85rem, 2.4vw, 1rem);
+  font-weight: 500;
+  color: #e7c878;
+}
+.sp-venue-addr {
+  display: block;
+  font-size: clamp(0.68rem, 1.8vw, 0.82rem);
+  font-style: italic;
+  color: rgba(253,245,230,.55);
+  line-height: 1.55;
+  margin-top: 2px;
+}
+
+/* ── Map pin icon size ── */
+.sp-map-pin {
+  width: 13px;
+  height: auto;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Map button ── */
+.sp-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 16px;
+  border: 1px solid rgba(201,154,69,.35);
+  border-radius: 999px;
+  color: #c99a45;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background .2s, color .2s, border-color .2s;
+  align-self: flex-start;
+}
+.sp-map-btn--center { align-self: center; }
+.sp-map-btn:hover {
+  background: rgba(201,154,69,.14);
+  border-color: rgba(201,154,69,.55);
+  color: #e7c878;
+}
+
+/* ── Leaf branch ornament ── */
+.sp-stop-leaf {
+  width: clamp(32px,8vw,52px);
+  flex-shrink: 0;
+  opacity: .55;
+  align-self: center;
+  margin-top: -4px;
+}
+
+/* ── Muhurtham line ── */
+.sp-muhurtham {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.5rem, 1.4vw, 0.6rem);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(201,154,69,.65);
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COUNTDOWN TILE GRID
+   ══════════════════════════════════════════════════════════════ */
+.sp-cd-grid {
+  display: flex; gap: clamp(6px,1.5vw,10px);
+}
+.sp-cd-tile {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(201,154,69,.18);
+  border-radius: 8px;
+  background: rgba(231,200,120,.04);
+  min-width: 46px;
+}
+.sp-cd-n {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.3rem, 3.8vw, 1.9rem);
+  font-weight: 300;
+  color: #e7c878;
+  line-height: 1;
+}
+.sp-cd-l {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(231,200,120,.5);
+  margin-top: 3px;
+}
+.sp-cd-sub {
+  font-style: italic;
+  color: rgba(231,200,120,.45);
+  font-size: clamp(0.7rem, 1.9vw, 0.85rem);
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HENNA MANDALA / LANTERN / ARCH ICONS
+   ══════════════════════════════════════════════════════════════ */
+.sp-henna-mandala {
+  width: clamp(40px,10vw,60px);
+  flex-shrink: 0;
+  opacity: .5;
+  align-self: center;
+}
+.sp-lantern-icon {
+  width: clamp(32px,8vw,48px);
+  flex-shrink: 0;
+  opacity: .55;
+  align-self: center;
+}
+.sp-arch-icon {
+  width: clamp(80px,22vw,160px);
+  opacity: .5;
+  margin-bottom: -8px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GALLERY — scattered polaroids
+   ══════════════════════════════════════════════════════════════ */
+.sp-gallery-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1rem, 3.2vw, 1.6rem);
+  color: #e7c878;
+  margin: 0 0 4px;
+}
+.sp-gallery-sub {
+  font-style: italic;
+  font-size: clamp(0.78rem, 2vw, 0.94rem);
+  color: rgba(253,245,230,.5);
+  margin: 0 0 20px;
+}
+.sp-gallery-scatter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+.sp-polaroid {
+  width: clamp(100px,26vw,145px);
+  background: rgba(67,16,25,.75);
+  border: 1px solid rgba(201,154,69,.18);
+  padding: 7px 7px 18px;
+  transform: rotate(var(--pt,0deg)) translateY(var(--py,0));
+  transition: transform 0.5s ease, box-shadow 0.3s, opacity 0.6s;
+  opacity: 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.28);
+}
+.sp-polaroid.sp-revealed {
+  opacity: 1;
+}
+.sp-polaroid:hover {
+  transform: rotate(0deg) scale(1.05);
+  box-shadow: 0 8px 22px rgba(0,0,0,.4);
+  z-index: 4;
+}
+.sp-pol-photo {
+  width: 100%; aspect-ratio: 1;
+  background: rgba(201,154,69,.06);
+  border: 1px solid rgba(201,154,69,.1);
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-pol-star {
+  color: rgba(201,154,69,.3);
+  font-size: 1.6rem;
+}
+.sp-pol-cap {
+  font-style: italic;
+  font-size: clamp(0.56rem, 1.4vw, 0.66rem);
+  color: rgba(231,200,120,.55);
+  text-align: center;
+  margin: 7px 0 0;
+  line-height: 1.4;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BLESSINGS — final stop
+   ══════════════════════════════════════════════════════════════ */
+.sp-bless-bloom {
+  width: clamp(70px,18vw,110px);
+  opacity: .2;
+  margin-bottom: 4px;
+}
+.sp-bless-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  max-width: min(90vw, 440px);
+  text-align: center;
+}
+.sp-bless-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.48rem, 1.3vw, 0.58rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(201,154,69,.6);
+  margin: 0;
+}
+.sp-bless-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.2rem, 3.8vw, 2rem);
+  font-weight: 400;
+  color: #e7c878;
+  line-height: 1.3;
+  margin: 0;
+}
+.sp-bless-sub {
+  font-style: italic;
+  font-size: clamp(0.8rem, 2.1vw, 0.96rem);
+  color: rgba(253,245,230,.6);
+  line-height: 1.7;
+  margin: 0;
+}
+.sp-bless-btn {
+  cursor: pointer;
+  background: none; border: none; padding: 0;
+  transition: transform 0.2s;
+}
+.sp-bless-btn:hover  { transform: scale(1.04); }
+.sp-bless-btn:active { transform: scale(0.97); }
+.sp-bless-btn-text {
+  display: block;
+  padding: clamp(11px,2.4vw,15px) clamp(26px,5.5vw,40px);
+  background: rgba(67,16,25,.85);
+  color: #e7c878;
+  border: 1px solid rgba(201,154,69,.38);
+  border-radius: 999px;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(0.65rem, 1.8vw, 0.88rem);
+  letter-spacing: 0.12em;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+}
+.sp-bless-count {
+  color: #c99a45;
+  font-size: clamp(0.72rem, 1.9vw, 0.88rem);
+  margin: 0;
+}
+.sp-bless-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.35em;
+  font-weight: 500;
+}
+.sp-bless-unit {
+  font-style: italic;
+  opacity: .75;
+}
+
+/* Journey end ornament */
+.sp-journey-end {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.sp-journey-end svg { width: clamp(80px,22vw,120px); }
+.sp-end-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(201,154,69,.4);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HEART BURST
+   ══════════════════════════════════════════════════════════════ */
+.sp-heart-burst {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  /* animation-duration and animation-delay set inline per particle */
+  animation: heartFly cubic-bezier(0.22,1,0.36,1) both;
+  line-height: 1;
+  font-size: 1.1rem;
+  opacity: 0; /* starts hidden until delay elapses */
+}
+@keyframes heartFly {
+  0%   { transform: translate(-50%,-50%) scale(1);    opacity: 1; }
+  80%  { opacity: .5; }
+  100% { transform: translate(calc(-50% + var(--tx,0px)), calc(-50% + var(--ty,-80px))) scale(0.15); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MUTE BUTTON (stays from film, still visible on scroll page)
+   ══════════════════════════════════════════════════════════════ */
+.mute-btn {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 14px));
+  right: 16px;
+  z-index: 35;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(30,10,14,.52);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201,154,69,.25);
+  color: #e7c878;
+  font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 1px;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+  overflow: hidden;
+}
+.mute-btn:hover { background: rgba(201,154,69,.2); transform: scale(1.08); }
+/* Streaming buffer % badge — tiny text below the icon */
+.mute-btn-buffer {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.38rem;
+  letter-spacing: 0.04em;
+  color: rgba(201,154,69,.7);
+  line-height: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 520px) {
+  .sp-seg--countdown,
+  .sp-seg--bride-mehandi,
+  .sp-seg--groom-mehandi,
+  .sp-seg--reception {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .sp-info--left,
+  .sp-info--right { margin: 0 auto; }
+  .sp-info { max-width: 88vw; }
+  .sp-gallery-scatter { gap: 10px; }
+  .sp-polaroid { width: clamp(88px, 38vw, 125px); }
+  .sp-map-btn { align-self: center; }
+  .sp-venue-block { text-align: left; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FLOWER CORNER DECORATIONS  (.sp-flower)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Base — absolute, non-interactive, pointer-events off */
+.sp-flower {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.82;
+  animation: spFlowerSway 5s ease-in-out infinite;
+  /* Each corner variant overrides transform-origin */
+  z-index: 0;
+}
+
+/* Make the card a stacking context so flowers sit behind text */
+.sp-info {
+  position: relative;
+  overflow: visible;
+}
+/* All direct children of .sp-info except flowers sit above */
+.sp-info > *:not(.sp-flower) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Corner positions ── */
+.sp-flower--tl {
+  top: -16px;
+  left: -16px;
+  transform-origin: top left;
+  transform: none;
+  animation-name: spFlowerSwayTL;
+}
+.sp-flower--tr {
+  top: -16px;
+  right: -16px;
+  transform-origin: top right;
+  transform: none;
+  animation-name: spFlowerSwayTR;
+}
+.sp-flower--bl {
+  bottom: -22px;
+  left: -22px;
+  transform-origin: top right;
+  transform: rotate(90deg) scaleX(-1);
+  animation-name: spFlowerSwayBL;
+}
+.sp-flower--br {
+  bottom: -22px;
+  right: -22px;
+  transform-origin: top left;
+  transform: rotate(-90deg);
+  animation-name: spFlowerSwayBR;
+}
+
+/* ── Gentle sway keyframes — each corner rocks around its anchor ── */
+@keyframes spFlowerSwayTR {
+  0%, 100% { transform: rotate(0deg)   scale(1);    }
+  30%       { transform: rotate(-4deg) scale(1.03); }
+  65%       { transform: rotate(3deg)  scale(0.98); }
+}
+@keyframes spFlowerSwayTL {
+  0%, 100% { transform: rotate(0deg)   scale(1);    }
+  30%       { transform: rotate(-4deg) scale(1.03); }
+  65%       { transform: rotate(3deg)  scale(0.98); }
+}
+@keyframes spFlowerSwayBL {
+  0%, 100% { transform: rotate(90deg)  scaleX(-1) scale(1);    }
+  30%       { transform: rotate(86deg)  scaleX(-1) scale(1.03); }
+  65%       { transform: rotate(93deg)  scaleX(-1) scale(0.98); }
+}
+@keyframes spFlowerSwayBR {
+  0%, 100% { transform: rotate(-90deg) scale(1);    }
+  30%       { transform: rotate(-86deg) scale(1.03); }
+  65%       { transform: rotate(-93deg) scale(0.98); }
+}
+
+/* Stagger delays so all 6 cards don't pulse in sync */
+.sp-seg:nth-child(1)  .sp-flower { animation-delay: 0s;      }
+.sp-seg:nth-child(3)  .sp-flower { animation-delay: -1.2s;   }
+.sp-seg:nth-child(5)  .sp-flower { animation-delay: -2.4s;   }
+.sp-seg:nth-child(7)  .sp-flower { animation-delay: -0.6s;   }
+.sp-seg:nth-child(9)  .sp-flower { animation-delay: -3.0s;   }
+.sp-seg:nth-child(11) .sp-flower { animation-delay: -1.8s;   }
+/* second flower in same card gets a slight extra offset */
+.sp-flower + .sp-flower,
+.sp-info .sp-flower:last-of-type { animation-delay: -2.5s; }
+
+/* ── Blur & fade with card focus state ──
+   When the card is unfocused, flowers blur and fade together with it.
+   When focused, flowers are fully crisp. ── */
+.sp-info--unfocused .sp-flower {
+  opacity: 0.25;
+  filter: blur(1.5px) brightness(0.65);
+  transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1),
+              filter  0.65s cubic-bezier(0.4,0,0.2,1);
+}
+.sp-info--focused .sp-flower {
+  opacity: 0.88;
+  filter: none;
+  transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1),
+              filter  0.65s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Reduced motion: freeze sway ── */
+@media (prefers-reduced-motion: reduce) {
+  .sp-flower { animation: none; }
+}

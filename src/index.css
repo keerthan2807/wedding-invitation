@@ -1,0 +1,37 @@
+/* Global baseline — mobile-first */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  /* Prevent font scaling in landscape on iOS */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  background: #f8ebd7;
+  color: #5a2720;
+  /* Prevent pull-to-refresh interfering with the film */
+  overscroll-behavior: none;
+}
+
+/* Safe focus ring for keyboard users */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #c99a45;
+  outline-offset: 3px;
+}
+
+/* Ensure images never overflow their containers */
+img, canvas {
+  max-width: 100%;
+  display: block;
+}
