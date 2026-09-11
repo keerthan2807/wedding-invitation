@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import './scroll.css'
-import flowerImg from '../png-transparent-flower-bouquet-graphy-flower-flower-arranging-artificial-flower-flower-thumbnail.png'
 
 /* ── Flower corner decoration ───────────────────────────────────── */
 // corners: array of 1–2 strings from 'tl','tr','bl','br'
@@ -11,7 +10,7 @@ function FlowerDecor({ corners = ['tr', 'bl'] }) {
       {corners.map(corner => (
         <img
           key={corner}
-          src={flowerImg}
+          src="/flower.png"
           className={`sp-flower sp-flower--${corner}`}
           aria-hidden="true"
           draggable="false"
