@@ -506,6 +506,7 @@ export default function App() {
   const [muted, setMuted]             = useState(false)
   const [loadingDone, setLoadingDone] = useState(false)  // overlay dismissed
   const [bufferPct, setBufferPct]     = useState(0)      // 0–100 audio buffer
+  const [audioReady, setAudioReady]   = useState(false)  // canplay has fired
   const audioRef      = useRef(null)
   const frameRef      = useRef(null)
   // Stable refs so canplay closure always sees latest values without re-running effects
@@ -520,9 +521,14 @@ export default function App() {
   const totalDuration = scenes.reduce((t, s) => t + s.duration, 0)
   const sceneStart    = scenes.slice(0, sceneIndex).reduce((t, s) => t + s.duration, 0)
 
+  // true once canplay fires — audio has buffered enough to play
+  const audioReadyRef = useRef(false)
+
   /* ── Dismiss loading overlay ── */
-  // withMusic=false: called by "Skip music" button (genuine click → mute + dismiss).
-  // withMusic=true:  called automatically when canplay fires (auto-dismiss + play).
+  // Always called from a real user gesture (tap on overlay or "Skip music" button).
+  // withMusic=true  → play the song (audio is guaranteed ready at this point, or
+  //                   we set a pending flag and canplay starts it).
+  // withMusic=false → mute and enter without music.
   const dismissRef = useRef(null)
   dismissRef.current = (withMusic) => {
     const audio = audioRef.current
@@ -530,20 +536,14 @@ export default function App() {
       audio.muted = true
       setMuted(true)
     } else if (withMusic && !reduceMotionRef.current && audio) {
-      // Try to play. On browsers where a prior gesture exists this works immediately.
-      // If the browser blocks it (cold load, no gesture yet), retry on the first
-      // interaction anywhere on the page.
-      const tryPlay = () => audio.play().catch(() => {})
-      audio.play().catch(() => {
-        const resume = () => { tryPlay(); document.removeEventListener('pointerdown', resume) }
-        document.addEventListener('pointerdown', resume, { once: true, passive: true })
-      })
+      // We are inside a click handler — browser allows play() here.
+      audio.play().catch(() => {})
     }
     setLoadingDone(true)
     setPlaying(true)
   }
 
-  /* ── Audio: start downloading immediately; auto-dismiss when ready ── */
+  /* ── Audio: start downloading immediately ── */
   useEffect(() => {
     const audio = new Audio()
     audio.src     = '/love-music.mp3'
@@ -560,9 +560,8 @@ export default function App() {
     }
     audio.addEventListener('progress', onProgress)
 
-    // canplay fires when there's enough data to start playing.
-    // Auto-dismiss the overlay and start the song — no button needed.
-    const onCanPlay = () => { dismissRef.current(true) }
+    // Mark audio as ready; the overlay tap will call play().
+    const onCanPlay = () => { audioReadyRef.current = true; setAudioReady(true) }
     audio.addEventListener('canplay', onCanPlay, { once: true })
 
     return () => {
@@ -572,7 +571,7 @@ export default function App() {
     }
   }, [])
 
-  // "Skip music" button — only shown while audio is still downloading
+  // "Skip music" — only visible while audio is still downloading (bufferPct < 100 and not ready)
   const skipMusic = (e) => {
     e.stopPropagation()
     dismissRef.current(false)
@@ -653,7 +652,13 @@ export default function App() {
     <main className="wedding-film">
       {/* ── Loading screen ── */}
       {!loadingDone && (
-        <div className="inv-loading" aria-live="polite" aria-label="Preparing invitation">
+        <div
+          className="inv-loading"
+          aria-live="polite"
+          aria-label="Preparing invitation"
+          onClick={() => { if (audioReady) dismissRef.current(true) }}
+          style={{ cursor: audioReady ? 'pointer' : 'default' }}
+        >
           <div className="inv-loading-inner">
             <div className="inv-loading-mandala" aria-hidden="true">
               <div className="inv-loading-ring inv-loading-ring--1" />
@@ -662,19 +667,27 @@ export default function App() {
               <span className="inv-loading-om">ॐ</span>
             </div>
             <p className="inv-loading-text">Preparing your invitation…</p>
-            <p className="inv-loading-sub">
-              Loading music&nbsp;
-              {bufferPct > 0 && bufferPct < 100
-                ? <span className="inv-loading-buf">{bufferPct}%</span>
-                : '…'}
-            </p>
-            <button
-              type="button"
-              className="inv-loading-btn"
-              onClick={skipMusic}
-            >
-              Skip music
-            </button>
+            {!audioReady && (
+              <p className="inv-loading-sub">
+                Loading music&nbsp;
+                {bufferPct > 0 && bufferPct < 100
+                  ? <span className="inv-loading-buf">{bufferPct}%</span>
+                  : '…'}
+              </p>
+            )}
+            {audioReady
+              ? (
+                <p className="inv-loading-sub">Tap anywhere to begin&nbsp;♥</p>
+              ) : (
+                <button
+                  type="button"
+                  className="inv-loading-btn"
+                  onClick={skipMusic}
+                >
+                  Skip music
+                </button>
+              )
+            }
           </div>
         </div>
       )}
