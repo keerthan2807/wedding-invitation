@@ -520,14 +520,9 @@ export default function App() {
   const totalDuration = scenes.reduce((t, s) => t + s.duration, 0)
   const sceneStart    = scenes.slice(0, sceneIndex).reduce((t, s) => t + s.duration, 0)
 
-  // Tracks whether audio has buffered enough to play
-  const audioReadyRef = useRef(false)
-  // Tracks whether the user has tapped "Enter" (withMusic=true) before canplay fired
-  const pendingPlayRef = useRef(false)
-
   /* ── Dismiss loading overlay ── */
-  // Called either from the loading-screen tap (withMusic=true) or "Skip music" (false).
-  // This always happens inside a real user-gesture handler, so audio.play() is allowed.
+  // withMusic=false: called by "Skip music" button (genuine click → mute + dismiss).
+  // withMusic=true:  called automatically when canplay fires (auto-dismiss + play).
   const dismissRef = useRef(null)
   dismissRef.current = (withMusic) => {
     const audio = audioRef.current
@@ -535,19 +530,20 @@ export default function App() {
       audio.muted = true
       setMuted(true)
     } else if (withMusic && !reduceMotionRef.current && audio) {
-      if (audioReadyRef.current) {
-        // Audio already buffered — play immediately (we're inside a click, so allowed)
-        audio.play().catch(() => {})
-      } else {
-        // Audio not ready yet — mark pending; canplay will start it
-        pendingPlayRef.current = true
-      }
+      // Try to play. On browsers where a prior gesture exists this works immediately.
+      // If the browser blocks it (cold load, no gesture yet), retry on the first
+      // interaction anywhere on the page.
+      const tryPlay = () => audio.play().catch(() => {})
+      audio.play().catch(() => {
+        const resume = () => { tryPlay(); document.removeEventListener('pointerdown', resume) }
+        document.addEventListener('pointerdown', resume, { once: true, passive: true })
+      })
     }
     setLoadingDone(true)
     setPlaying(true)
   }
 
-  /* ── Audio: start downloading immediately; play when ready if user already tapped ── */
+  /* ── Audio: start downloading immediately; auto-dismiss when ready ── */
   useEffect(() => {
     const audio = new Audio()
     audio.src     = '/love-music.mp3'
@@ -565,15 +561,8 @@ export default function App() {
     audio.addEventListener('progress', onProgress)
 
     // canplay fires when there's enough data to start playing.
-    // If the user already tapped "Enter" while audio was still loading,
-    // pendingPlayRef will be true — start playback now.
-    const onCanPlay = () => {
-      audioReadyRef.current = true
-      if (pendingPlayRef.current) {
-        pendingPlayRef.current = false
-        audio.play().catch(() => {})
-      }
-    }
+    // Auto-dismiss the overlay and start the song — no button needed.
+    const onCanPlay = () => { dismissRef.current(true) }
     audio.addEventListener('canplay', onCanPlay, { once: true })
 
     return () => {
@@ -583,7 +572,7 @@ export default function App() {
     }
   }, [])
 
-  // "Skip music" button — dismiss without music
+  // "Skip music" button — only shown while audio is still downloading
   const skipMusic = (e) => {
     e.stopPropagation()
     dismissRef.current(false)
@@ -681,14 +670,7 @@ export default function App() {
             </p>
             <button
               type="button"
-              className="inv-loading-btn inv-loading-btn--enter"
-              onClick={() => dismissRef.current(true)}
-            >
-              Begin Invitation ♥
-            </button>
-            <button
-              type="button"
-              className="inv-loading-btn inv-loading-btn--skip"
+              className="inv-loading-btn"
               onClick={skipMusic}
             >
               Skip music
