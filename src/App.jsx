@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import bgMusic from './love-music.mp3'
 import './film.css'
 import SplashCursor from './components/SplashCursor'
 import SideParticleFlow from './components/SideParticleFlow'
@@ -538,7 +537,7 @@ export default function App() {
   /* ── Audio: download immediately; canplay auto-dismisses on first gesture ── */
   useEffect(() => {
     const audio = new Audio()
-    audio.src     = bgMusic
+    audio.src     = '/love-music.mp3'
     audio.loop    = true
     audio.volume  = 0.34
     audio.preload = 'auto'
