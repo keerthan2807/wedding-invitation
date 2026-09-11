@@ -739,7 +739,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
             <div className="sp-dest-ornament" data-step aria-hidden="true">— ✦ —</div>
             <p className="sp-dest-detail" data-step>
               <span className="sp-detail-label">Where</span>
-              Kulal Family Home, Mangaluru
+              Radha krishna Hall, Mangaluru
             </p>
             <p className="sp-dest-detail" data-step>
               <span className="sp-detail-label">When</span>
