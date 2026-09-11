@@ -748,7 +748,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
             <a className="sp-map-btn" data-step
               href="https://maps.app.goo.gl/qPwzFFh1CaHcMDox8"
               target="_blank" rel="noopener noreferrer">
-              <MapPin /> Trace the path
+              <MapPin /> Find on map
             </a>
           </div>
         </div>
@@ -779,7 +779,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
             <a className="sp-map-btn" data-step
               href="https://goo.gl/maps/p8EZNMqXkpUoEqN26"
               target="_blank" rel="noopener noreferrer">
-              <MapPin /> Trace the path
+              <MapPin /> Find on map
             </a>
           </div>
         </div>
@@ -848,7 +848,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
             <a className="sp-map-btn" data-step
               href="https://maps.google.com/?q=Kulala+Bhavana+Mangaladevi+Temple+Mangaluru"
               target="_blank" rel="noopener noreferrer">
-              <MapPin /> Trace the path
+              <MapPin /> Find on map
             </a>
           </div>
         </div>
