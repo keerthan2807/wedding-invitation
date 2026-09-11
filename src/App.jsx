@@ -520,21 +520,34 @@ export default function App() {
   const totalDuration = scenes.reduce((t, s) => t + s.duration, 0)
   const sceneStart    = scenes.slice(0, sceneIndex).reduce((t, s) => t + s.duration, 0)
 
-  /* ── Dismiss loading overlay — shared by both paths ── */
+  // Tracks whether audio has buffered enough to play
+  const audioReadyRef = useRef(false)
+  // Tracks whether the user has tapped "Enter" (withMusic=true) before canplay fired
+  const pendingPlayRef = useRef(false)
+
+  /* ── Dismiss loading overlay ── */
+  // Called either from the loading-screen tap (withMusic=true) or "Skip music" (false).
+  // This always happens inside a real user-gesture handler, so audio.play() is allowed.
   const dismissRef = useRef(null)
   dismissRef.current = (withMusic) => {
     const audio = audioRef.current
-    if (withMusic && !reduceMotionRef.current && audio) {
-      audio.play().catch(() => {})
-    } else if (!withMusic && audio) {
+    if (!withMusic && audio) {
       audio.muted = true
       setMuted(true)
+    } else if (withMusic && !reduceMotionRef.current && audio) {
+      if (audioReadyRef.current) {
+        // Audio already buffered — play immediately (we're inside a click, so allowed)
+        audio.play().catch(() => {})
+      } else {
+        // Audio not ready yet — mark pending; canplay will start it
+        pendingPlayRef.current = true
+      }
     }
     setLoadingDone(true)
     setPlaying(true)
   }
 
-  /* ── Audio: download immediately; canplay auto-dismisses on first gesture ── */
+  /* ── Audio: start downloading immediately; play when ready if user already tapped ── */
   useEffect(() => {
     const audio = new Audio()
     audio.src     = '/love-music.mp3'
@@ -551,56 +564,28 @@ export default function App() {
     }
     audio.addEventListener('progress', onProgress)
 
-    // canplay: enough buffered to play.
-    // Register ALL interaction events that fire reliably on iOS Safari.
-    // Whichever fires first dismisses the overlay and starts music.
+    // canplay fires when there's enough data to start playing.
+    // If the user already tapped "Enter" while audio was still loading,
+    // pendingPlayRef will be true — start playback now.
     const onCanPlay = () => {
-      let fired = false
-      const onTap = () => {
-        if (fired) return
-        fired = true
-        clearTimeout(autoTimer)
-        cleanup()
-        dismissRef.current(true)
+      audioReadyRef.current = true
+      if (pendingPlayRef.current) {
+        pendingPlayRef.current = false
+        audio.play().catch(() => {})
       }
-      const cleanup = () => {
-        document.removeEventListener('pointerdown', onTap)
-        document.removeEventListener('touchstart',  onTap)
-        document.removeEventListener('click',       onTap)
-      }
-      document.addEventListener('pointerdown', onTap, { once: true, passive: true })
-      document.addEventListener('touchstart',  onTap, { once: true, passive: true })
-      document.addEventListener('click',       onTap, { once: true })
-
-      // Auto-dismiss after 800ms if the user never touches —
-      // browser allows play() here because canplay itself is close enough
-      // to the load trigger; on desktop this always works.
-      // On iOS the tap events above will win first if the user taps.
-      const autoTimer = setTimeout(() => {
-        if (fired) return
-        fired = true
-        cleanup()
-        dismissRef.current(true)
-      }, 800)
-
-      // Save cleanup so "Skip music" can cancel both listeners and the timer
-      audio._tapCleanup = () => { cleanup(); clearTimeout(autoTimer) }
     }
     audio.addEventListener('canplay', onCanPlay, { once: true })
 
     return () => {
       audio.removeEventListener('progress', onProgress)
       audio.removeEventListener('canplay', onCanPlay)
-      audio._tapCleanup?.()
       audio.pause()
     }
   }, [])
 
-  // "Skip music" button — cancel the pending tap listener, dismiss without music
+  // "Skip music" button — dismiss without music
   const skipMusic = (e) => {
     e.stopPropagation()
-    audioRef.current?._tapCleanup?.()
-    audioRef.current && (audioRef.current._tapCleanup = null)
     dismissRef.current(false)
   }
 
@@ -696,7 +681,14 @@ export default function App() {
             </p>
             <button
               type="button"
-              className="inv-loading-btn"
+              className="inv-loading-btn inv-loading-btn--enter"
+              onClick={() => dismissRef.current(true)}
+            >
+              Begin Invitation ♥
+            </button>
+            <button
+              type="button"
+              className="inv-loading-btn inv-loading-btn--skip"
               onClick={skipMusic}
             >
               Skip music
