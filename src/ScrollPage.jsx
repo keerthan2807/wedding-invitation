@@ -638,7 +638,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
               stroke="#c99a45" strokeWidth="1.5" strokeDasharray="3 3" opacity=".6" />
             <circle cx="20" cy="60" r="3" fill="rgba(201,154,69,.4)" stroke="#c99a45" strokeWidth="1" />
           </svg>
-          <span className="sp-nudge-text">Swipe down</span>
+          <span className="sp-nudge-text">Scroll Up</span>
         </div>
       </section>
 
