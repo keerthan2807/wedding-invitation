@@ -42,6 +42,7 @@
   opacity: 0.55;
   animation: bgMandalaRotate 90s linear infinite;
   flex-shrink: 0;
+  will-change: transform;
 }
 @keyframes bgMandalaRotate {
   from { transform: rotate(0deg); }
@@ -61,6 +62,7 @@
   background: rgba(201,154,69,.22);
   opacity: 0;
   animation: petalFall linear infinite;
+  will-change: transform, opacity;
 }
 @keyframes petalFall {
   0%   { transform: translateY(0)      rotate(0deg);   opacity: .0; }
@@ -915,6 +917,7 @@
   user-select: none;
   opacity: 0.82;
   animation: spFlowerSway 5s ease-in-out infinite;
+  will-change: transform;
   /* Each corner variant overrides transform-origin */
   z-index: 0;
 }
@@ -1012,4 +1015,40 @@
 /* ── Reduced motion: freeze sway ── */
 @media (prefers-reduced-motion: reduce) {
   .sp-flower { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PERFORMANCE — touch / small screens
+   Same look, cheaper to paint: no backdrop blur on near-opaque cards,
+   no SVG blur filter re-rasterised every frame, and focus transitions
+   limited to compositor-friendly properties (opacity / transform).
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px), (pointer: coarse) {
+  .sp-root { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+
+  /* Cards are ~95% opaque — the backdrop blur is invisible but very costly */
+  .sp-info {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition:
+      opacity 0.5s cubic-bezier(0.4,0,0.2,1),
+      transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  /* Blur filter / animated box-shadow force a repaint every frame; use brightness only */
+  .sp-info--focused   { filter: none; }
+  .sp-info--unfocused { filter: brightness(0.75); }
+
+  .sp-info--unfocused .sp-flower,
+  .sp-info--focused .sp-flower {
+    filter: none;
+    transition: opacity 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* SVG glow filter on the long dotted path is re-rasterised on every dashoffset change */
+  .sp-doodle-path { filter: none; }
+
+  /* Animated drop-shadow filter -> static */
+  .sp-path-origin { animation: none; filter: drop-shadow(0 0 6px rgba(231,200,120,.65)); }
+
+  .sp-progress-fill, .sp-progress-gem { transition: none; }
 }

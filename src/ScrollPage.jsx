@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import './scroll.css'
 
 /* ── Flower corner decoration ───────────────────────────────────── */
 // corners: array of 1–2 strings from 'tl','tr','bl','br'
 // Each card gets a unique combo so they don't all look the same
-function FlowerDecor({ corners = ['tr', 'bl'] }) {
+const FlowerDecor = memo(function FlowerDecor({ corners = ['tr', 'bl'] }) {
   return (
     <>
       {corners.map(corner => (
@@ -14,11 +14,12 @@ function FlowerDecor({ corners = ['tr', 'bl'] }) {
           className={`sp-flower sp-flower--${corner}`}
           aria-hidden="true"
           draggable="false"
+          decoding="async"
         />
       ))}
     </>
   )
-}
+})
 
 /* ── Countdown ─────────────────────────────────────────────────── */
 const WEDDING_DATE = new Date('2026-11-13T12:10:00+05:30')
@@ -82,21 +83,57 @@ function spawnSparkles(x, y, count = 10) {
 }
 
 /* ── Floating ambient petal ────────────────────────────────────── */
-function AmbientPetals() {
-  const petals = Array.from({ length: 14 }, (_, i) => ({
-    left: `${5 + ((i * 17) % 90)}%`,
-    delay: `${(i * 0.7) % 7}s`,
-    dur: `${8 + (i % 5)}s`,
-    size: `${4 + (i % 4)}px`,
-  }))
+const PETALS = Array.from({ length: 14 }, (_, i) => ({
+  left: `${5 + ((i * 17) % 90)}%`,
+  delay: `${(i * 0.7) % 7}s`,
+  dur: `${8 + (i % 5)}s`,
+  size: `${4 + (i % 4)}px`,
+}))
+const AmbientPetals = memo(function AmbientPetals() {
   return (
     <div className="sp-petals" aria-hidden="true">
-      {petals.map((p, i) => (
+      {PETALS.map((p, i) => (
         <i key={i} className="sp-petal" style={{ left: p.left, animationDelay: p.delay, animationDuration: p.dur, width: p.size }} />
       ))}
     </div>
   )
-}
+})
+
+const BgMandala = memo(function BgMandala() {
+  return (
+    <svg className="sp-bg-mandala" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      {/* Concentric rings */}
+      <circle cx="200" cy="200" r="190" stroke="#c99a45" strokeWidth="0.6" opacity=".18" strokeDasharray="6 6" />
+      <circle cx="200" cy="200" r="162" stroke="#c99a45" strokeWidth="0.5" opacity=".14" />
+      <circle cx="200" cy="200" r="134" stroke="#c99a45" strokeWidth="0.7" opacity=".16" strokeDasharray="3 5" />
+      <circle cx="200" cy="200" r="108" stroke="#e9b99d" strokeWidth="0.5" opacity=".12" />
+      <circle cx="200" cy="200" r="82"  stroke="#c99a45" strokeWidth="0.6" opacity=".18" />
+      <circle cx="200" cy="200" r="56"  stroke="#c99a45" strokeWidth="0.5" opacity=".14" strokeDasharray="4 4" />
+      <circle cx="200" cy="200" r="32"  stroke="#e7c878" strokeWidth="0.6" opacity=".15" />
+      <circle cx="200" cy="200" r="14"  stroke="#c99a45" strokeWidth="0.8" opacity=".2" />
+      {[0,30,60,90,120,150,180,210,240,270,300,330].map((a, i) => (
+        <g key={i} transform={`rotate(${a} 200 200)`}>
+          <ellipse cx="200" cy="116" rx="7" ry="18"
+            fill="rgba(201,154,69,.05)" stroke="#c99a45" strokeWidth="0.5" opacity=".22" />
+        </g>
+      ))}
+      {[0,45,90,135,180,225,270,315].map((a, i) => (
+        <g key={i} transform={`rotate(${a} 200 200)`}>
+          <ellipse cx="200" cy="155" rx="5" ry="12"
+            fill="rgba(233,185,157,.04)" stroke="#e9b99d" strokeWidth="0.4" opacity=".18" />
+        </g>
+      ))}
+      {[0,90,180,270].map((a, i) => (
+        <g key={i} transform={`rotate(${a} 200 200)`}>
+          <path d="M200,15 L205,22 L200,29 L195,22 Z" fill="rgba(201,154,69,.12)" stroke="#c99a45" strokeWidth="0.5" opacity=".3" />
+          <line x1="200" y1="10" x2="200" y2="35" stroke="#c99a45" strokeWidth="0.4" opacity=".2" />
+        </g>
+      ))}
+      <circle cx="200" cy="200" r="6" fill="rgba(201,154,69,.15)" stroke="#c99a45" strokeWidth="0.7" opacity=".25" />
+      <circle cx="200" cy="200" r="2.5" fill="#c99a45" opacity=".2" />
+    </svg>
+  )
+})
 
 /* ── SVG decorative ornaments ──────────────────────────────────── */
 function FloralBloom({ className = '' }) {
@@ -291,7 +328,11 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
   const t = useCountdown()
   const pad = n => String(n).padStart(2, '0')
   const [blessings, setBlessings] = useState(getB)
-  const [scrollPct, setScrollPct] = useState(0)
+  const railFillRef     = useRef(null)
+  const railGemRef      = useRef(null)
+  const scrollMetricsRef = useRef({ off: 0, offY: 0 })
+  const lastVisRef      = useRef('')
+  const samplesRef      = useRef(null)        // precomputed path points (avoids getPointAtLength per frame)
 
   const pageRef         = useRef(null)
   const journeyRef      = useRef(null)
@@ -391,21 +432,34 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
 
     // Dot position
     if (dot && glow) {
-      try {
-        const tipLen = Math.min(d, len - 0.5)
-        const pt      = path.getPointAtLength(tipLen)
-        const svgRect = path.closest('svg').getBoundingClientRect()
-        const jRect   = journeyRef.current.getBoundingClientRect()
-        const x = pt.x + (svgRect.left - jRect.left)
-        const y = pt.y + (svgRect.top  - jRect.top)
+      const tipLen = Math.min(d, len - 0.5)
+      const samples = samplesRef.current
+      let x, y
+      if (samples) {
+        const STEP = samples.step
+        const f  = tipLen / STEP
+        const i0 = Math.min(samples.xs.length - 2, Math.floor(f))
+        const t  = f - i0
+        x = samples.xs[i0] + (samples.xs[i0 + 1] - samples.xs[i0]) * t
+        y = samples.ys[i0] + (samples.ys[i0 + 1] - samples.ys[i0]) * t
+      } else {
+        const pt = path.getPointAtLength(tipLen)
+        x = pt.x; y = pt.y
+      }
+      x += scrollMetricsRef.current.off
+      y += scrollMetricsRef.current.offY
+      {
         // dot inner stays at 0,0; wrapper is positioned
         glow.style.transform = `translate(${x - 11}px, ${y - 11}px)`
         dot.style.transform  = `translate(${x - 5}px,  ${y - 5}px)`
         const pct = len > 0 ? d / len : 0
         const vis = pct > 0.004 && pct < 0.997 ? '1' : '0'
-        dot.style.opacity  = vis
-        glow.style.opacity = vis
-      } catch {}
+        if (vis !== lastVisRef.current) {
+          lastVisRef.current = vis
+          dot.style.opacity  = vis
+          glow.style.opacity = vis
+        }
+      }
     }
   }, [])
 
@@ -456,7 +510,8 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
     const scrolled = el.scrollTop
     const total    = el.scrollHeight - el.clientHeight
     const pct      = total > 0 ? Math.min(1, scrolled / total) : 0
-    setScrollPct(pct)
+    if (railFillRef.current) railFillRef.current.style.height = `${pct * 100}%`
+    if (railGemRef.current)  railGemRef.current.style.top    = `${pct * 100}%`
 
     const len = pathLenRef.current
     if (!len) return
@@ -522,6 +577,19 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
           svgEl.setAttribute('height', h)
           const len = pathRef.current.getTotalLength()
           pathLenRef.current = len
+          // Pre-sample the path once so the per-frame dot position is a cheap lerp
+          const STEP = 4
+          const n = Math.ceil(len / STEP) + 2
+          const xs = new Float32Array(n), ys = new Float32Array(n)
+          for (let k = 0; k < n; k++) {
+            const pt = pathRef.current.getPointAtLength(Math.min(len, k * STEP))
+            xs[k] = pt.x; ys[k] = pt.y
+          }
+          samplesRef.current = { step: STEP, xs, ys }
+          // SVG sits at the journey's top-left, so the offset is measured once here
+          const sr = svgEl.getBoundingClientRect(), jr = journey.getBoundingClientRect()
+          scrollMetricsRef.current.off = sr.left - jr.left
+          scrollMetricsRef.current.offY = sr.top - jr.top
           // Build a dotted dasharray that covers the full path length.
           // Pattern: 2px dot, 10px gap, repeating.
           // We need enough repetitions to cover `len` px.
@@ -566,44 +634,14 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
 
       {/* ── Background artwork — slow-rotating mandala, fixed behind everything ── */}
       <div className="sp-bg-artwork" aria-hidden="true">
-        <svg className="sp-bg-mandala" viewBox="0 0 400 400" fill="none" aria-hidden="true">
-          {/* Concentric rings */}
-          <circle cx="200" cy="200" r="190" stroke="#c99a45" strokeWidth="0.6" opacity=".18" strokeDasharray="6 6" />
-          <circle cx="200" cy="200" r="162" stroke="#c99a45" strokeWidth="0.5" opacity=".14" />
-          <circle cx="200" cy="200" r="134" stroke="#c99a45" strokeWidth="0.7" opacity=".16" strokeDasharray="3 5" />
-          <circle cx="200" cy="200" r="108" stroke="#e9b99d" strokeWidth="0.5" opacity=".12" />
-          <circle cx="200" cy="200" r="82"  stroke="#c99a45" strokeWidth="0.6" opacity=".18" />
-          <circle cx="200" cy="200" r="56"  stroke="#c99a45" strokeWidth="0.5" opacity=".14" strokeDasharray="4 4" />
-          <circle cx="200" cy="200" r="32"  stroke="#e7c878" strokeWidth="0.6" opacity=".15" />
-          <circle cx="200" cy="200" r="14"  stroke="#c99a45" strokeWidth="0.8" opacity=".2" />
-          {[0,30,60,90,120,150,180,210,240,270,300,330].map((a, i) => (
-            <g key={i} transform={`rotate(${a} 200 200)`}>
-              <ellipse cx="200" cy="116" rx="7" ry="18"
-                fill="rgba(201,154,69,.05)" stroke="#c99a45" strokeWidth="0.5" opacity=".22" />
-            </g>
-          ))}
-          {[0,45,90,135,180,225,270,315].map((a, i) => (
-            <g key={i} transform={`rotate(${a} 200 200)`}>
-              <ellipse cx="200" cy="155" rx="5" ry="12"
-                fill="rgba(233,185,157,.04)" stroke="#e9b99d" strokeWidth="0.4" opacity=".18" />
-            </g>
-          ))}
-          {[0,90,180,270].map((a, i) => (
-            <g key={i} transform={`rotate(${a} 200 200)`}>
-              <path d="M200,15 L205,22 L200,29 L195,22 Z" fill="rgba(201,154,69,.12)" stroke="#c99a45" strokeWidth="0.5" opacity=".3" />
-              <line x1="200" y1="10" x2="200" y2="35" stroke="#c99a45" strokeWidth="0.4" opacity=".2" />
-            </g>
-          ))}
-          <circle cx="200" cy="200" r="6" fill="rgba(201,154,69,.15)" stroke="#c99a45" strokeWidth="0.7" opacity=".25" />
-          <circle cx="200" cy="200" r="2.5" fill="#c99a45" opacity=".2" />
-        </svg>
+        <BgMandala />
       </div>
       <AmbientPetals />
 
       {/* ── Scroll progress rail ── */}
       <div className="sp-progress-rail" aria-hidden="true">
-        <div className="sp-progress-fill" style={{ height: `${scrollPct * 100}%` }} />
-        <div className="sp-progress-gem" style={{ top: `${scrollPct * 100}%` }} />
+        <div className="sp-progress-fill" ref={railFillRef} style={{ height: '0%' }} />
+        <div className="sp-progress-gem" ref={railGemRef} style={{ top: '0%' }} />
       </div>
 
       {/* ══════════════════════════════════════════════════════════

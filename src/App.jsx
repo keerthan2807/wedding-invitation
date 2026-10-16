@@ -20,7 +20,6 @@ const scenes = [
   { key: 'groomtease', duration: 4500 },
   { key: 'groom',      duration: 6500 },
   { key: 'bride',      duration: 6500 },
-  { key: 'quote',      duration: 6000 },
   { key: 'union',      duration: 6000 },
   { key: 'ceremony',   duration: 6000 },
   { key: 'recepquote', duration: 4000 },
@@ -313,54 +312,6 @@ function SceneUnion() {
   )
 }
 
-/* ── Paths Cross — cinematic interlude between bride & union ── */
-function SceneQuote() {
-  return (
-    <div className="s-paths">
-      {/* Left half — his world */}
-      <div className="paths-half paths-half--his" aria-hidden="true">
-        <div className="paths-half-bg paths-half-bg--his" />
-        <div className="paths-sil paths-sil--his">
-          <div className="paths-sil-body" />
-          <div className="paths-sil-head" />
-          <div className="paths-sil-glow" />
-        </div>
-      </div>
-      {/* Right half — her world */}
-      <div className="paths-half paths-half--hers" aria-hidden="true">
-        <div className="paths-half-bg paths-half-bg--hers" />
-        <div className="paths-sil paths-sil--hers">
-          <div className="paths-sil-body paths-sil-body--hers" />
-          <div className="paths-sil-head" />
-          <div className="paths-sil-glow paths-sil-glow--hers" />
-        </div>
-      </div>
-      {/* Gold divider line that splits and dissolves */}
-      <div className="paths-divider" aria-hidden="true">
-        <div className="paths-divider-line" />
-        <div className="paths-divider-star">✦</div>
-      </div>
-      {/* Story copy — centred over both halves */}
-      <div className="paths-copy">
-        <p className="paths-line paths-line--1">Two lives.</p>
-        <p className="paths-line paths-line--2">Two families. Two dreams.</p>
-        <div className="paths-rule" aria-hidden="true" />
-        <p className="paths-line paths-line--3">
-          He grew up chasing sunrises in Mangalore.<br />
-          She grew up filling every room with grace.
-        </p>
-        <p className="paths-line paths-line--4">
-          Neither knew the other existed —<br />
-          until the stars decided otherwise.
-        </p>
-        <div className="paths-rule" aria-hidden="true" />
-        <p className="paths-line paths-line--5">And now&nbsp;…&nbsp;their paths become one.</p>
-      </div>
-      <Petals />
-    </div>
-  )
-}
-
 function SceneCeremony() {
   return (
     <div className="s-details s-ceremony">
@@ -458,7 +409,6 @@ const SCENE_MAP = {
   groomtease: SceneGroomTease,
   groom:      SceneGroom,
   bride:      SceneBride,
-  quote:      SceneQuote,
   union:      SceneUnion,
   ceremony:   SceneCeremony,
   recepquote: SceneRecepQuote,
