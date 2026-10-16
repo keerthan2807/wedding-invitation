@@ -40,6 +40,10 @@
 
   /* Scene transition */
   --scene-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Space reserved at the bottom of a scene for the floating "Skip to Events"
+     pill + film controls, incl. the mobile browser toolbar / home indicator */
+  --controls-clear: calc(clamp(72px, 14vh, 96px) + 52px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── Reset ─────────────────────────────────────────────────────── */
@@ -718,7 +722,7 @@ h1, h2 {
   position: absolute;
   /* Cover the whole scene except the controls strip at bottom */
   top: 0; left: 0; right: 0;
-  bottom: clamp(60px, 13vh, 90px);
+  bottom: var(--controls-clear);
   pointer-events: none;
   z-index: 4;
   /* overflow hidden so we don't see figures while off-screen */
@@ -1020,23 +1024,27 @@ h1, h2 {
   animation: glowBreath 5s ease-in-out infinite;
 }
 
+/* Layout: OM (pinned) → text block → couple photo fills the remaining space.
+   Flow layout (instead of fixed % heights) so text and photo can never overlap,
+   whatever the screen height or browser-toolbar position. */
+.s-finale {
+  padding-top: calc(clamp(18px, 4vh, 36px) + clamp(100px, 20vw, 140px) + 6px);
+  padding-bottom: var(--controls-clear);
+}
+
 /* Couple */
 .finale-figures {
-  position: absolute;
-  bottom: calc(clamp(58px,12vh,82px) + env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  transform: translateX(-50%);
-  /* width drives the size; height is auto via contain */
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
   width: min(55vw, 380px);
-  height: 46%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  margin-top: var(--sp-sm);
   z-index: 4;
   pointer-events: none;
 }
 /* Single combined couple image — contain so no side/top crop */
 .finale-couple {
+  position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: contain;
   object-position: bottom center;
@@ -1046,20 +1054,16 @@ h1, h2 {
   animation: finaleCouple 2s var(--scene-ease) both, soloFloat 5.5s 2s ease-in-out infinite;
 }
 
-/* Finale content — starts below the pinned OM mark */
+/* Finale content — sits in the flow, directly below the OM mark */
 .finale-content {
-  position: absolute;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 7;
-  top: clamp(130px, 26vh, 190px);
-  left: 50%;
-  transform: translateX(-50%);
   width: min(90vw, 640px);
   text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-xs);
-  /* bottom padding ensures the credits block never overlaps the couple photo
-     on devices with a browser toolbar (e.g. Safari on iOS) */
-  padding: 0 var(--sp-md) calc(env(safe-area-inset-bottom, 0px) + 4px);
-  animation: panelSlideDown 1.2s .3s both;
+  padding: 0 var(--sp-md);
+  animation: finaleContentIn 1.2s .3s both;
 }
 .finale-names {
   color: var(--maroon);
@@ -1213,7 +1217,7 @@ h1, h2 {
 .skip-btn {
   position: fixed;
   z-index: 22;
-  bottom: clamp(72px, 14vh, 96px);   /* sits just above film-controls */
+  bottom: calc(clamp(72px, 14vh, 96px) + env(safe-area-inset-bottom, 0px));   /* sits just above film-controls */
   left: 50%;
   transform: translateX(-50%);
   border: none;
@@ -1294,6 +1298,10 @@ h1, h2 {
 @keyframes panelFadeIn {
   from { opacity: 0; transform: translateY(20px); filter: blur(6px); }
   to   { opacity: 1; transform: translateY(0);    filter: blur(0);   }
+}
+@keyframes finaleContentIn {
+  from { opacity: 0; transform: translateY(-16px); filter: blur(5px); }
+  to   { opacity: 1; transform: translateY(0);     filter: blur(0);   }
 }
 @keyframes panelSlideDown {
   from { opacity: 0; transform: translate(-50%, -16px); filter: blur(5px); }
@@ -1425,10 +1433,7 @@ h1, h2 {
   .solo-copy { width: min(44vw, 340px); }
   /* union and finale same size at every breakpoint */
   .union-couple { width: min(58vw, 400px); height: 48%; }
-  .finale-figures {
-    width: min(58vw, 400px);
-    height: 48%;
-  }
+  .finale-figures { width: min(58vw, 400px); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1445,7 +1450,7 @@ h1, h2 {
   .s-groom-solo .solo-copy { right: clamp(40px, 8vw, 120px); }
   .s-bride-solo .solo-copy  { left: clamp(40px, 8vw, 120px); }
   .union-couple  { width: min(48vw, 380px); height: 48%; }
-  .finale-figures { width: min(48vw, 380px); height: 48%; }
+  .finale-figures { width: min(48vw, 380px); }
   .details-content { max-width: min(76vw, 680px); }
   .film-controls { width: min(calc(100vw - 40px), 460px); }
 }
