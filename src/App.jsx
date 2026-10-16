@@ -493,31 +493,92 @@ export default function App() {
     setPlaying(true)
   }
 
-  /* ── Audio: start downloading immediately ── */
+  /* ── Audio: start downloading immediately ──
+     Mobile browsers (iOS Safari, data-saver modes) ignore preload="auto" and
+     won't fetch an <audio> src until play() is called from a tap — so
+     `canplay`/`progress` never fire and the loader sits at 0%.
+     fetch() is not subject to that rule, so we download the file ourselves
+     (with real progress) and hand the audio element a local blob URL. */
+  const playRequestedRef = useRef(false)
   useEffect(() => {
+    const SRC = '/love-music.mp3'
     const audio = new Audio()
-    audio.src     = '/love-music.mp3'
     audio.loop    = true
     audio.volume  = 0.34
     audio.preload = 'auto'
     audioRef.current = audio
 
-    // Buffer progress badge
-    const onProgress = () => {
-      if (!audio.duration || !audio.buffered.length) return
-      const end = audio.buffered.end(audio.buffered.length - 1)
-      setBufferPct(Math.round((end / audio.duration) * 100))
-    }
-    audio.addEventListener('progress', onProgress)
+    let cancelled = false
+    let objectUrl = null
+    const ctrl = new AbortController()
 
     // Mark audio as ready; the overlay tap will call play().
     const onCanPlay = () => { audioReadyRef.current = true; setAudioReady(true) }
     audio.addEventListener('canplay', onCanPlay, { once: true })
 
+    const useSrc = (src) => {
+      audio.src = src
+      audio.load()
+      // If the user already asked for playback (e.g. Replay) before data arrived
+      if (playRequestedRef.current) audio.play().catch(() => {})
+    }
+
+    const download = async () => {
+      try {
+        const res = await fetch(SRC, { signal: ctrl.signal })
+        if (!res.ok || !res.body) throw new Error('bad response')
+        const total  = Number(res.headers.get('content-length')) || 0
+        const reader = res.body.getReader()
+        const chunks = []
+        let received = 0
+        for (;;) {
+          const { done, value } = await reader.read()
+          if (done) break
+          chunks.push(value)
+          received += value.length
+          if (total) setBufferPct(Math.min(99, Math.round((received / total) * 100)))
+        }
+        if (cancelled) return
+        objectUrl = URL.createObjectURL(new Blob(chunks, { type: 'audio/mpeg' }))
+        setBufferPct(100)
+        useSrc(objectUrl)
+      } catch {
+        if (cancelled) return
+        // fetch failed — fall back to letting the element load it directly
+        useSrc(SRC)
+      }
+    }
+    download()
+
+    /* ── End the session when the page is closed / backgrounded ──
+       Mobile browsers keep a page's audio alive after the tab is closed,
+       swiped away or the app is minimised. Pause on hide, and resume on
+       return only if it was actually playing (and not muted). */
+    let wasPlaying = false
+    const stopAudio = () => {
+      if (!audio.paused) wasPlaying = true
+      audio.pause()
+    }
+    const resumeAudio = () => {
+      if (wasPlaying && !audio.muted) audio.play().catch(() => {})
+      wasPlaying = false
+    }
+    const onVisibility = () => { document.hidden ? stopAudio() : resumeAudio() }
+    const onPageHide = () => stopAudio()
+    const onPageShow = (e) => { if (e.persisted) resumeAudio() }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', onPageHide)
+    window.addEventListener('pageshow', onPageShow)
+
     return () => {
-      audio.removeEventListener('progress', onProgress)
+      cancelled = true
+      ctrl.abort()
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', onPageHide)
+      window.removeEventListener('pageshow', onPageShow)
       audio.removeEventListener('canplay', onCanPlay)
       audio.pause()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [])
 
@@ -569,6 +630,7 @@ export default function App() {
 
   const replay = () => {
     setSceneIndex(0); setSceneOffset(0); setProgress(0); setPlaying(true)
+    playRequestedRef.current = true
     if (audioRef.current) {
       audioRef.current.muted = muted
       audioRef.current?.play().catch(() => {})
