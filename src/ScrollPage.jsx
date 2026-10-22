@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import './scroll.css'
+import Memories from './Memories'
 
 /* ── Flower corner decoration ───────────────────────────────────── */
 // corners: array of 1–2 strings from 'tl','tr','bl','br'
@@ -905,22 +906,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
             <p className="sp-info-eyebrow" data-step>A chapter written in glances…</p>
             <p className="sp-gallery-title" data-step>Moments Frozen in Time</p>
             <p className="sp-gallery-sub" data-step>A few stolen glances from their story</p>
-            <div className="sp-gallery-scatter" data-step>
-              {[
-                { cap: 'A glimpse of joy',      tilt: '-5deg', oy: '-10px', delay: 0   },
-                { cap: 'Traditions run deep',   tilt: '4deg',  oy: '8px',  delay: 120 },
-                { cap: 'Eyes that speak',       tilt: '-2deg', oy: '-6px', delay: 240 },
-                { cap: 'Laughter & love',       tilt: '6deg',  oy: '12px', delay: 360 },
-                { cap: 'Blessed by the stars',  tilt: '-4deg', oy: '-14px',delay: 480 },
-                { cap: 'Forever begins here',   tilt: '2deg',  oy: '4px',  delay: 600 },
-              ].map(({ cap, tilt, oy, delay }, i) => (
-                <div key={i} className="sp-polaroid" data-step
-                  style={{ '--pt': tilt, '--py': oy, transitionDelay: `${delay}ms` }}>
-                  <div className="sp-pol-photo"><span className="sp-pol-star">✦</span></div>
-                  <p className="sp-pol-cap">{cap}</p>
-                </div>
-              ))}
-            </div>
+            <div data-step><Memories /></div>
           </div>
         </div>
 
