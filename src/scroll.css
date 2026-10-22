@@ -705,29 +705,33 @@
 }
 .sp-mem { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .sp-mem-row {
+  position: relative;
   width: 100%;
-  display: flex; align-items: center; justify-content: center;
-  gap: clamp(6px, 2vw, 14px);
+  display: flex; justify-content: center;
+  padding: 6px 10px 8px;           /* room for the tilted frames behind */
 }
+/* Arrows float over the photo edges so the photo can use the full card width */
 .sp-mem-nav {
-  flex: 0 0 auto;
-  width: 36px; height: 36px; border-radius: 50%;
+  position: absolute; top: 50%; z-index: 5;
+  transform: translateY(-50%);
+  width: 38px; height: 38px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(201,154,69,.14);
-  border: 1px solid rgba(201,154,69,.4);
+  background: rgba(30,10,14,.6);
+  border: 1px solid rgba(231,200,120,.55);
   color: #e7c878;
-  font-size: 1.5rem; line-height: 1; padding: 0 0 3px;
+  font-size: 1.6rem; line-height: 1; padding: 0 0 3px;
   cursor: pointer;
   transition: background .2s, opacity .2s;
 }
-.sp-mem-nav:hover:not(:disabled) { background: rgba(201,154,69,.3); }
+.sp-mem-nav:first-child { left: 0; }
+.sp-mem-nav:last-child  { right: 0; }
+.sp-mem-nav:hover:not(:disabled) { background: rgba(80,28,14,.85); }
 .sp-mem-nav:disabled { opacity: .3; cursor: default; }
 
 /* Stage holds the main frame + the stack of frames peeking out behind it */
 .sp-mem-stage {
   position: relative;
-  flex: 0 1 270px;
-  min-width: 0;
+  width: min(100%, 440px, calc(62dvh * 0.8));
   aspect-ratio: 4 / 5;
   touch-action: pan-y;
 }
@@ -928,6 +932,8 @@
    RESPONSIVE
    ══════════════════════════════════════════════════════════════ */
 @media (max-width: 520px) {
+  /* Give the Memories card nearly the full screen width */
+  .sp-info.sp-info--gallery { max-width: 96vw; width: 96vw; padding: 16px 10px; }
   .sp-seg--countdown,
   .sp-seg--bride-mehandi,
   .sp-seg--groom-mehandi,
