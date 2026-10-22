@@ -705,34 +705,35 @@
 }
 .sp-mem { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .sp-mem-row {
-  position: relative;
   width: 100%;
-  display: flex; justify-content: center;
-  padding: 6px 10px 8px;           /* room for the tilted frames behind */
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(6px, 2vw, 12px);
+  padding: 6px 0 8px;
 }
-/* Arrows float over the photo edges so the photo can use the full card width */
+/* Arrows sit outside the photo frame, inside the outer card */
 .sp-mem-nav {
-  position: absolute; top: 50%; z-index: 5;
-  transform: translateY(-50%);
-  width: 38px; height: 38px; border-radius: 50%;
+  flex: 0 0 auto;
+  width: 34px; height: 34px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(30,10,14,.6);
-  border: 1px solid rgba(231,200,120,.55);
+  background: rgba(201,154,69,.14);
+  border: 1px solid rgba(201,154,69,.5);
   color: #e7c878;
-  font-size: 1.6rem; line-height: 1; padding: 0 0 3px;
+  font-size: 1.5rem; line-height: 1; padding: 0 0 3px;
   cursor: pointer;
   transition: background .2s, opacity .2s;
 }
-.sp-mem-nav:first-child { left: 0; }
-.sp-mem-nav:last-child  { right: 0; }
-.sp-mem-nav:hover:not(:disabled) { background: rgba(80,28,14,.85); }
+.sp-mem-nav:hover:not(:disabled) { background: rgba(201,154,69,.32); }
 .sp-mem-nav:disabled { opacity: .3; cursor: default; }
 
-/* Stage holds the main frame + the stack of frames peeking out behind it */
+/* Stage holds the main frame + the stack of frames peeking out behind it.
+   9:16 portrait; width also capped by screen height so it always fits. */
 .sp-mem-stage {
   position: relative;
-  width: min(100%, 440px, calc(62dvh * 0.8));
-  aspect-ratio: 4 / 5;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: min(100%, 340px, calc(72dvh * 9 / 16));
+  aspect-ratio: 9 / 16;
+  margin: 0 8px;                    /* room for the tilted frames behind */
   touch-action: pan-y;
 }
 .sp-mem-frame, .sp-mem-back {
@@ -753,7 +754,7 @@
 
 .sp-mem-img {
   width: 100%; height: 100%;
-  object-fit: cover; display: block;
+  object-fit: contain; display: block;
   border-radius: 2px;
   animation: spMemIn .45s cubic-bezier(0.22,1,0.36,1) both;
 }
