@@ -442,8 +442,11 @@
 
 /* Gallery card needs more width to hold the polaroid scatter */
 .sp-info--gallery {
+  width: 100%;
   max-width: min(94vw, 560px);
+  padding: 18px 12px 16px;
 }
+.sp-info--gallery .sp-flower--tr { top: -12px; right: -6px; }
 /* Tighten gallery title margin when inside the card */
 .sp-info--gallery .sp-gallery-title { margin: 2px 0 2px; }
 .sp-info--gallery .sp-gallery-sub   { margin: 0 0 14px; }
@@ -703,22 +706,21 @@
   color: rgba(253,245,230,.5);
   margin: 0 0 20px;
 }
-.sp-mem { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.sp-mem { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .sp-mem-row {
   width: 100%;
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(6px, 2vw, 12px);
-  padding: 6px 0 8px;
+  gap: 4px;
 }
 /* Arrows sit outside the photo frame, inside the outer card */
 .sp-mem-nav {
   flex: 0 0 auto;
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 30px; height: 30px; border-radius: 50%;
   display: grid; place-items: center;
   background: rgba(201,154,69,.14);
   border: 1px solid rgba(201,154,69,.5);
   color: #e7c878;
-  font-size: 1.5rem; line-height: 1; padding: 0 0 3px;
+  font-size: 1.4rem; line-height: 1; padding: 0 0 3px;
   cursor: pointer;
   transition: background .2s, opacity .2s;
 }
@@ -726,14 +728,15 @@
 .sp-mem-nav:disabled { opacity: .3; cursor: default; }
 
 /* Stage holds the main frame + the stack of frames peeking out behind it.
-   9:16 portrait; width also capped by screen height so it always fits. */
+   9:16 portrait. It takes all the width left between the arrows, and is
+   limited only by screen height so the whole frame fits on screen. */
 .sp-mem-stage {
   position: relative;
-  flex: 0 1 auto;
+  flex: 1 1 0;
   min-width: 0;
-  width: min(100%, 340px, calc(72dvh * 9 / 16));
+  max-width: min(440px, calc(78dvh * 9 / 16));
   aspect-ratio: 9 / 16;
-  margin: 0 8px;                    /* room for the tilted frames behind */
+  margin: 0 6px;                    /* room for the tilted frames behind */
   touch-action: pan-y;
 }
 .sp-mem-frame, .sp-mem-back {
@@ -741,7 +744,7 @@
   border-radius: 6px;
   border: 1px solid rgba(201,154,69,.5);
   background: rgba(67,16,25,.92);
-  padding: 8px;
+  padding: 6px;
 }
 .sp-mem-frame {
   z-index: 3;
@@ -934,7 +937,10 @@
    ══════════════════════════════════════════════════════════════ */
 @media (max-width: 520px) {
   /* Give the Memories card nearly the full screen width */
-  .sp-info.sp-info--gallery { max-width: 96vw; width: 96vw; padding: 16px 10px; }
+  /* Widen the row symmetrically (negative side margins) so the card is centred
+     with equal 8px screen margins and can never overflow to the right */
+  .sp-seg--gallery { margin-left: -8px; margin-right: -8px; }
+  .sp-info.sp-info--gallery { width: 100%; max-width: none; margin: 0; padding: 16px 8px 14px; }
   .sp-seg--countdown,
   .sp-seg--bride-mehandi,
   .sp-seg--groom-mehandi,
