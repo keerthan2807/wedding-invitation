@@ -816,7 +816,7 @@ export default function ScrollPage({ replay, audioRef, muted, setMuted }) {
               Thursday, 12<sup>th</sup> November 2026
             </p>
             <a className="sp-map-btn" data-step
-              href="https://goo.gl/maps/p8EZNMqXkpUoEqN26"
+              href="https://maps.app.goo.gl/jRRzdC15v1CZbnVn8?g_st=aw"
               target="_blank" rel="noopener noreferrer">
               <MapPin /> Find on map
             </a>
